@@ -1,0 +1,74 @@
+AllCops:
+  TargetRubyVersion: 2.2
+  DisplayCopNames: true
+
+# Metrics
+Metrics/AbcSize:
+  Enabled: true
+  Max: 20
+
+Metrics/BlockNesting:
+  Enabled: true
+  Max: 4
+
+Metrics/ClassLength:
+  Enabled: true
+  Max: 250
+
+Metrics/CyclomaticComplexity:
+  Enabled: true
+
+Metrics/LineLength:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: true
+  Max: 30
+
+Metrics/ModuleLength:
+  Enabled: true
+  Max: 250
+
+Metrics/ParameterLists:
+  Enabled: true
+
+Metrics/PerceivedComplexity:
+  Enabled: true
+
+# Style
+Style/AsciiComments:
+  Enabled: false
+
+Style/CollectionMethods:
+  Enabled: true
+
+Style/ConditionalAssignment:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/FormatString:
+  EnforcedStyle: percent
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19_no_mixed_keys
+
+Style/MethodCalledOnDoEndBlock:
+  Enabled: true
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    '%i': '[]'
+    '%I': '[]'
+    '%w': '[]'
+    '%W': '[]'
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/SymbolArray:
+  Enabled: true
+
+Style/TrailingCommaInLiteral:
+  EnforcedStyleForMultiline: comma

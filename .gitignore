@@ -1,0 +1,7 @@
+.DS_Store
+.yardoc
+.ruby-gemset
+.ruby-version
+Gemfile.lock
+pkg
+doc
