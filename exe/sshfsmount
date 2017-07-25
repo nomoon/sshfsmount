@@ -1,4 +1,156 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require "gli"
+require "json"
+require "shellwords"
+require "fileutils"
+
 require "sshfsmount"
+
+#
+# Basic SSHFS flags
+#
+SSHFS_FLAGS = [
+  "-o local",
+  "-o workaround=nonodelaysrv",
+  "-o transform_symlinks",
+  "-o idmap=user",
+  "-C",
+].freeze
+
+#
+# Locate config file.
+#
+CONFIG_FILE = [
+  File.join(Dir.home, ".sshfsmount.json"),
+  File.join(Dir.home, ".config", "sshfsmount.json"),
+  File.join(Dir.home, ".config", "sshfsmount", "sshfsmount.json"),
+].select { |f| File.exist?(f) }.first.freeze
+
+#
+# Parse config file
+#
+CONFIG = (begin
+  if CONFIG_FILE.nil?
+    STDERR.puts "No config file found"
+    {}
+  else
+    JSON.parse(File.read(CONFIG_FILE), symbolize_names: true)
+  end
+rescue JSON::ParserError => e
+  STDERR.puts "Parse error in config file `#{CONFIG_FILE}`: #{e}"
+  {}
+end).freeze
+
+#
+# Create Mount-point Directory
+#
+def mkmountpoint(name)
+  local = File.expand_path(name)
+  if !Dir.exist?(local)
+    STDERR.puts "Creating mount-point directory #{local}"
+    FileUtils.mkdir_p(local)
+  elsif !Dir.empty?(local)
+    raise "Mount point #{local} already exists and is not empty"
+  elsif VERBOSE
+    STDERR.puts "Mount-point directory #{local} already exists and is empty"
+  end
+  local
+end
+
+#
+# Delete mount-point directory
+#
+def rmmountpoint(name)
+  local = File.expand_path(name)
+  if !Dir.exist?(local)
+    STDERR.puts "Mount-point directory not found" if VERBOSE
+  elsif !Dir.empty?(local)
+    raise "Mount-point directory #{local} is not empty"
+  else
+    STDERR.puts "Deleting mount-point directory #{local}"
+    FileUtils.rmdir(local)
+  end
+  local
+end
+
+#
+# Mount an SSHFS volume
+#
+def mount(mount_name, params)
+  local = mkmountpoint(params[:local])
+  volname = params[:volname] || mount_name
+  p_remote = Shellwords.escape(params[:remote])
+  p_local = Shellwords.escape(local)
+  p_volname = Shellwords.escape(volname)
+  port = (params[:port] || 22).to_i
+  cmd = "/usr/local/bin/sshfs #{p_remote} #{p_local} " \
+        "-o volname=\"#{p_volname}\" #{SSHFS_FLAGS.join(' ')} -p #{port}"
+  pgrep = `pgrep -f \"#{cmd}\"`
+  unless pgrep.empty?
+    raise "SSHFS process for #{mount_name} running already (PID: #{pgrep.strip}, " \
+          "Mount-point: #{p_local})"
+  end
+  puts "Mounting #{params[:remote]} to #{params[:local]} as \"#{volname}\""
+  STDERR.puts "> #{cmd}" if VERBOSE
+  system(cmd)
+end
+
+#
+# Unmount an SSHFS volume
+#
+def unmount(mount_name, params)
+  local = File.expand_path(params[:local])
+  p_local = Shellwords.escape(local)
+  cmd = "diskutil unmount #{p_local}"
+  pgrep = `pgrep -f \"#{p_local}\"`
+  if pgrep.empty?
+    raise "No SSHFS process found with the mount-point for #{mount_name} (#{p_local})"
+  end
+  puts "Unmounting #{local}"
+  STDERR.puts "> #{cmd}" if VERBOSE
+  system(cmd)
+  rmmountpoint(local)
+end
+
+#
+# GLI command-line app definition
+#
+include GLI::App
+
+program_desc "A simple SSHFS front-end"
+version Sshfsmount::VERSION
+
+switch %i[u unmount], desc: "Unmount the volume", negatable: false
+switch %i[v verbose], desc: "Show verbose output", negatable: false
+
+desc "List active SSHFS processes"
+command :active do |c|
+  c.action do
+    system("pgrep -fl sshfs")
+  end
+end
+
+#
+# Define commands from data-file
+#
+extant_commands = commands.keys
+CONFIG.reject { |name, _| extant_commands.include?(name) }.each do |mount_name, params|
+  desc "mount #{params[:remote]} to #{params[:local]}"
+  command mount_name do |c|
+    c.switch %i[u unmount], desc: "Unmount the volume", negatable: false
+    c.switch %i[v verbose], desc: "Show verbose output", negatable: false
+    c.action do |global_options, cmd_options|
+      VERBOSE = global_options[:v] || cmd_options[:v]
+      if global_options[:u] || cmd_options[:u]
+        unmount(mount_name, params)
+      else
+        mount(mount_name, params)
+      end
+    end
+  end
+end
+
+# Run the GLI app
+exit run(ARGV)
