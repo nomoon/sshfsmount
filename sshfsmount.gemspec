@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Tim Bellefleur"]
   spec.email         = ["nomoon@phoebus.ca"]
 
-  spec.summary       = "Simple front-end CLI to SSHFS"
+  spec.summary       = "A simple front-end CLI to SSHFS"
   spec.homepage      = "https://github.com/nomoon/sshfsmount"
   spec.license       = "MIT"
   spec.required_ruby_version = "~> 2.2"

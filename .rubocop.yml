@@ -5,7 +5,7 @@ AllCops:
 # Metrics
 Metrics/AbcSize:
   Enabled: true
-  Max: 20
+  Max: 22
 
 Metrics/BlockNesting:
   Enabled: true
