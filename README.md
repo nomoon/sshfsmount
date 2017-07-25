@@ -1,8 +1,12 @@
-# Sshfsmount
+# SSHFSmount
 
 [![Build Status](https://travis-ci.org/nomoon/sshfsmount.svg?branch=master)](https://travis-ci.org/nomoon/sshfsmount)
 [![Coverage Status](https://coveralls.io/repos/github/nomoon/sshfsmount/badge.svg?branch=master)](https://coveralls.io/github/nomoon/sshfsmount?branch=master)
 [![Dependency Status](https://gemnasium.com/badges/github.com/nomoon/sshfsmount.svg)](https://gemnasium.com/github.com/nomoon/sshfsmount)
+
+A simple front-end CLI to SSHFS.
+
+*Currently unstable and only tested on OSX.*
 
 ## Installation
 

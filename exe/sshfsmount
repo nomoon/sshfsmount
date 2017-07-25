@@ -119,7 +119,7 @@ end
 #
 include GLI::App
 
-program_desc "A simple SSHFS front-end"
+program_desc "A simple front-end CLI to SSHFS"
 version Sshfsmount::VERSION
 
 switch %i[u unmount], desc: "Unmount the volume", negatable: false
