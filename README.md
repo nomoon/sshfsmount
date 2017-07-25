@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/nomoon/sshfsmount.svg?branch=master)](https://travis-ci.org/nomoon/sshfsmount)
 [![Coverage Status](https://coveralls.io/repos/github/nomoon/sshfsmount/badge.svg?branch=master)](https://coveralls.io/github/nomoon/sshfsmount?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/nomoon/sshfsmount/badge.svg?branch=master)](https://coveralls.io/github/nomoon/sshfsmount?branch=master)
+[![Dependency Status](https://gemnasium.com/badges/github.com/nomoon/sshfsmount.svg)](https://gemnasium.com/github.com/nomoon/sshfsmount)
 
 ## Installation
 
