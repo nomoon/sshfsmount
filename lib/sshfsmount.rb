@@ -33,27 +33,31 @@ module Sshfsmount
   # Locate config file.
   #
   def find_config_file
-    [
-      Pathname.new(File.join(Dir.home, ".sshfsmount.json")),
-      Pathname.new(File.join(Dir.home, ".config", "sshfsmount.json")),
-      Pathname.new(File.join(Dir.home, ".config", "sshfsmount", "sshfsmount.json")),
-    ].select(&:file?).first
+    @config_file ||= begin
+      [
+        Pathname.new(File.join(Dir.home, ".sshfsmount.json")),
+        Pathname.new(File.join(Dir.home, ".config", "sshfsmount.json")),
+        Pathname.new(File.join(Dir.home, ".config", "sshfsmount", "sshfsmount.json")),
+      ].select(&:file?).first
+    end
   end
 
   #
   # Parse config file
   #
   def config
-    config_file = find_config_file
-    if config_file.nil?
-      STDERR.puts "No config file found"
+    @config ||= begin
+      config_file = find_config_file
+      if config_file.nil?
+        STDERR.puts "No config file found"
+        {}
+      else
+        JSON.parse(config_file.read, symbolize_names: true)
+      end
+    rescue JSON::ParserError => e
+      STDERR.puts "Parse error in config file `#{config_file}`: #{e}"
       {}
-    else
-      JSON.parse(config_file.read, symbolize_names: true)
     end
-  rescue JSON::ParserError => e
-    STDERR.puts "Parse error in config file `#{config_file}`: #{e}"
-    {}
   end
 
   def active_mounts
