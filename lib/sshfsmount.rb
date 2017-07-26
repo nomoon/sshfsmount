@@ -3,7 +3,6 @@
 require "json"
 require "shellwords"
 require "pathname"
-require "fileutils"
 
 require "sshfsmount/version"
 
