@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require "json"
+require "shellwords"
+require "fileutils"
+
 require "sshfsmount/version"
 
 module Sshfsmount

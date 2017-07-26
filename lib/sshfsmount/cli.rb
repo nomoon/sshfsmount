@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 require "gli"
-require "json"
-require "shellwords"
-require "fileutils"
 
 module Sshfsmount
   module CLI
@@ -36,7 +33,7 @@ module Sshfsmount
         c.switch %i[u unmount], desc: "Unmount the volume", negatable: false
         c.switch %i[v verbose], desc: "Show verbose output", negatable: false
         c.action do |global_options, cmd_options|
-          @verbose = global_options[:v] || cmd_options[:v]
+          Sshfsmount.verbose = global_options[:v] || cmd_options[:v]
           if global_options[:u] || cmd_options[:u]
             Sshfsmount.unmount(mount_name, params)
           else
