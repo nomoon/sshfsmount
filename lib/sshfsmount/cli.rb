@@ -17,7 +17,9 @@ module Sshfsmount
     desc "List active SSHFS processes"
     command :active do |c|
       c.action do
-        system("pgrep -fl sshfs")
+        Sshfsmount.active_mounts.each_value do |data|
+          puts "* #{data[:str]}"
+        end
       end
     end
 

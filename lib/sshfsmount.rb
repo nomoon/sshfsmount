@@ -56,6 +56,25 @@ module Sshfsmount
     {}
   end
 
+  def active_mounts
+    @active_mounts ||= begin
+      `mount`.lines.each_with_object({}) do |line, mounts|
+        regex = %r{^(?<remote>.+@[^:]+\:/.*?) on (?<local>/.*?) (?<options>\(\b(?:fuse|osxfuse)\b.*?\))$}
+        info = line.match(regex)
+        next if info.nil?
+        pid = `pgrep -f "/sshfs #{Shellwords.escape(info[:remote])} #{Shellwords.escape(info[:local])} "`.strip
+        pid = "None found" if pid.empty?
+        mounts[Pathname.new(info[:local]).expand_path] = {
+          local: info[:local],
+          remote: info[:remote],
+          options: info[:options],
+          pid: pid,
+          str: "#{info[:remote]} on #{info[:local]} (PID: #{pid})",
+        }
+      end
+    end
+  end
+
   #
   # Create Mount-point Directory
   #
