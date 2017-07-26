@@ -151,15 +151,13 @@ module Sshfsmount
   #
   def unmount(mount_name, params)
     local = Pathname.new(params[:local]).expand_path
-    p_local = Shellwords.escape(local)
-    cmd = "diskutil unmount #{p_local}"
-    pgrep = `pgrep -f \"#{p_local}\"`
-    if pgrep.empty?
-      raise "No SSHFS process found with the mount-point for #{mount_name} (#{p_local})"
-    end
-    puts "Unmounting #{local}"
+    info = active_mounts[local]
+    raise "No active mount-point found for #{local}" if info.empty?
+    STDERR.puts "No active SSHFS process found for #{local}" if info[:pid] == "None found"
+    cmd = "umount #{Shellwords.escape(local)}"
+    puts "Unmounting \"#{mount_name}\" (#{local})"
     STDERR.puts "> #{cmd}" if @verbose
-    system(cmd)
+    raise "Unmount error, skipping removal of mount-point." unless system(cmd)
     rmmountpoint(local)
   end
 end
