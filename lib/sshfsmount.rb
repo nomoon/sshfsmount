@@ -79,6 +79,14 @@ module Sshfsmount
     end
   end
 
+  # Fails if the mount-path is already in use.
+  def dupe_check!(mount_name, params)
+    local = Pathname.new(params[:local]).expand_path
+    dupe = active_mounts[local]
+    return if dupe.nil?
+    raise "\"#{mount_name}\" already mounted?\n* #{dupe[:str]}"
+  end
+
   #
   # Create Mount-point Directory
   #
@@ -119,6 +127,7 @@ module Sshfsmount
   # Mount an SSHFS volume
   #
   def mount(mount_name, params)
+    dupe_check!(mount_name, params)
     local = mkmountpoint(params[:local])
     volname = params[:volname] || mount_name
     p_remote = Shellwords.escape(params[:remote])
