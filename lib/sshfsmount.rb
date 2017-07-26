@@ -2,6 +2,7 @@
 
 require "json"
 require "shellwords"
+require "pathname"
 require "fileutils"
 
 require "sshfsmount/version"
@@ -33,10 +34,10 @@ module Sshfsmount
   #
   def find_config_file
     [
-      File.join(Dir.home, ".sshfsmount.json"),
-      File.join(Dir.home, ".config", "sshfsmount.json"),
-      File.join(Dir.home, ".config", "sshfsmount", "sshfsmount.json"),
-    ].select { |f| File.exist?(f) }.first
+      Pathname.new(File.join(Dir.home, ".sshfsmount.json")),
+      Pathname.new(File.join(Dir.home, ".config", "sshfsmount.json")),
+      Pathname.new(File.join(Dir.home, ".config", "sshfsmount", "sshfsmount.json")),
+    ].select(&:file?).first
   end
 
   #
@@ -48,7 +49,7 @@ module Sshfsmount
       STDERR.puts "No config file found"
       {}
     else
-      JSON.parse(File.read(config_file), symbolize_names: true)
+      JSON.parse(config_file.read, symbolize_names: true)
     end
   rescue JSON::ParserError => e
     STDERR.puts "Parse error in config file `#{config_file}`: #{e}"
@@ -59,11 +60,13 @@ module Sshfsmount
   # Create Mount-point Directory
   #
   def mkmountpoint(name)
-    local = File.expand_path(name)
-    if !Dir.exist?(local)
+    local = Pathname.new(name).expand_path
+    if !local.exist?
       STDERR.puts "Creating mount-point directory #{local}"
-      FileUtils.mkdir_p(local)
-    elsif !Dir.empty?(local)
+      local.mkpath
+    elsif !local.directory
+      raise "Mount point #{local} exists and is not a directory"
+    elsif !local.empty?
       raise "Mount point #{local} already exists and is not empty"
     elsif @verbose
       STDERR.puts "Mount-point directory #{local} already exists and is empty"
@@ -75,14 +78,16 @@ module Sshfsmount
   # Delete mount-point directory
   #
   def rmmountpoint(name)
-    local = File.expand_path(name)
-    if !Dir.exist?(local)
+    local = Pathname.new(name).expand_path
+    if !local.exist?
       STDERR.puts "Mount-point directory not found" if @verbose
-    elsif !Dir.empty?(local)
+    elsif !local.directory?
+      raise "Mount point #{local} is not a directory"
+    elsif !local.empty?
       raise "Mount-point directory #{local} is not empty"
     else
       STDERR.puts "Deleting mount-point directory #{local}"
-      FileUtils.rmdir(local)
+      local.rmdir
     end
     local
   end
@@ -113,7 +118,7 @@ module Sshfsmount
   # Unmount an SSHFS volume
   #
   def unmount(mount_name, params)
-    local = File.expand_path(params[:local])
+    local = Pathname.new(params[:local]).expand_path
     p_local = Shellwords.escape(local)
     cmd = "diskutil unmount #{p_local}"
     pgrep = `pgrep -f \"#{p_local}\"`
