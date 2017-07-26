@@ -153,7 +153,7 @@ module Sshfsmount
   def unmount(mount_name, params)
     local = Pathname.new(params[:local]).expand_path
     info = active_mounts[local]
-    raise "No active mount-point found for #{local}" if info.empty?
+    raise "No active mount-point found for #{local}" if info.nil?
     STDERR.puts "No active SSHFS process found for #{local}" if info[:pid] == "None found"
     cmd = "umount #{Shellwords.escape(local)}"
     puts "Unmounting \"#{mount_name}\" (#{local})"
