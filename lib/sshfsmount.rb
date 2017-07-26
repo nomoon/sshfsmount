@@ -141,7 +141,8 @@ module Sshfsmount
           "-o volname=\"#{Shellwords.escape(volname)}\" " \
           "#{SSHFS_FLAGS.join(' ')} " \
           "-p #{(params[:port] || 22).to_i}"
-    puts "Mounting \"#{mount_name}\" (#{params[:remote]} on #{local} as \"#{volname}\")"
+    puts "Mounting \"#{mount_name}\"\n" \
+      " * #{params[:remote]} on #{local} as \"#{volname}\""
     STDERR.puts "> #{cmd}" if @verbose
     system(cmd)
   end
