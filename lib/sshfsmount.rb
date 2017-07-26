@@ -29,6 +29,12 @@ module Sshfsmount
     @verbose = val ? true : false
   end
 
+  def sshfs_cmd
+    sshfs_cmd = `command -v sshfs`.strip
+    raise "sshfs command not found in path" if sshfs_cmd.empty?
+    sshfs_cmd
+  end
+
   #
   # Locate config file.
   #
@@ -119,8 +125,8 @@ module Sshfsmount
     else
       STDERR.puts "Deleting mount-point directory #{local}"
       local.rmdir
+      return true
     end
-    local
   end
 
   #
@@ -130,18 +136,13 @@ module Sshfsmount
     dupe_check!(mount_name, params)
     local = mkmountpoint(params[:local])
     volname = params[:volname] || mount_name
-    p_remote = Shellwords.escape(params[:remote])
-    p_local = Shellwords.escape(local)
-    p_volname = Shellwords.escape(volname)
-    port = (params[:port] || 22).to_i
-    cmd = "/usr/local/bin/sshfs #{p_remote} #{p_local} " \
-          "-o volname=\"#{p_volname}\" #{SSHFS_FLAGS.join(' ')} -p #{port}"
-    pgrep = `pgrep -f \"#{cmd}\"`
-    unless pgrep.empty?
-      raise "SSHFS process for #{mount_name} running already (PID: #{pgrep.strip}, " \
-            "Mount-point: #{p_local})"
-    end
-    puts "Mounting #{params[:remote]} to #{params[:local]} as \"#{volname}\""
+    cmd = "#{sshfs_cmd} " \
+          "#{Shellwords.escape(params[:remote])} " \
+          "#{Shellwords.escape(local)} " \
+          "-o volname=\"#{Shellwords.escape(volname)}\" " \
+          "#{SSHFS_FLAGS.join(' ')} " \
+          "-p #{(params[:port] || 22).to_i}"
+    puts "Mounting \"#{mount_name}\" (#{params[:remote]} on #{local} as \"#{volname}\")"
     STDERR.puts "> #{cmd}" if @verbose
     system(cmd)
   end
